@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.springframework.org/schema/security"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!-- 以下页面不被拦截 -->
+    <http pattern="/login.html" security="none"/>
+    <http pattern="/css/**" security="none"/>
+    <http pattern="/img/**" security="none"/>
+    <http pattern="/js/**" security="none"/>
+    <http pattern="/plugins/**" security="none"/>
+
+    <!-- 页面拦截规则 -->
+    <!--定制规则是否需要用函数表示-->
+    <http use-expressions="false">
+        <!--配置需要拦截的路径和访问权限-->
+        <intercept-url pattern="/*" access="ROLE_ADMIN"/>
+        <!--配置拦截跳转页面-->
+        <form-login default-target-url="/admin/index.html" login-page="/login.html"
+                    authentication-failure-url="/login.html" always-use-default-target="true"/>
+        <!--关闭跨域访问验证-->
+        <csrf disabled="true"/>
+        <headers>
+            <!--开启框架页面支持-->
+            <frame-options policy="SAMEORIGIN"/>
+        </headers>
+    </http>
+
+    <!--配置认证器-->
+    <authentication-manager>
+        <authentication-provider>
+            <user-service>
+                <user name="admin" password="admin" authorities="ROLE_ADMIN"/>
+                <user name="root" authorities="ROLE_ADMIN" password="root"/>
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+</beans:beans>
