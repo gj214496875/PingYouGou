@@ -98,6 +98,12 @@ public class ItemCatController {
     @RequestMapping("/delete")
     public Result delete(Long[] ids) {
         try {
+            for (Long id : ids) {
+                List<TbItemCat> byParentId = findByParentId(id);
+                if (byParentId != null && byParentId.size() > 0) {
+                    throw new RuntimeException();
+                }
+            }
             itemCatService.delete(ids);
             return new Result(true, "删除成功");
         } catch (Exception e) {
