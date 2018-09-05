@@ -62,4 +62,6 @@ public interface TypeTemplateService {
 
 
     List<Map> selectOptionList();
+
+	List<Map> selectSpecList(Long id);
 }

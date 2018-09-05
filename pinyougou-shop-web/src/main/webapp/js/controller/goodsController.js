@@ -1,5 +1,5 @@
 //控制层
-app.controller('goodsController', function ($scope, $controller, goodsService, uploadService) {
+app.controller('goodsController', function ($scope, $controller, goodsService, uploadService, itemCatService, typeTemplateService) {
 
     $controller('baseController', {$scope: $scope});//继承
 
@@ -103,7 +103,7 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
         })
     };
 
-    $scope.entity = {goods: {}, goodsDesc: {itemImages: []}};
+    $scope.entity = {goods: {}, goodsDesc: {itemImages: [], specificationItems: []}};
 
     $scope.add_image_entity = function () {
         $scope.image_entity.goodsDesc.itemImages.push($scope.image_entity);
@@ -111,6 +111,75 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
 
     $scope.remove_image_entity = function (index) {
         $scope.entity.goodsDesc.itemImages.splice(index, 1);
-    }
+    };
 
-});	
+    //查询第一个下拉列表数据
+    $scope.find1List = function () {
+        itemCatService.findByParentId(0).success(function (response) {
+            $scope.itemCat1List = response;
+        });
+    };
+
+    // 查询第二个下拉列表数据
+    $scope.$watch('entity.goods.category1Id', function (newValue, oldValue) {
+        itemCatService.findByParentId(newValue).success(function (response) {
+            $scope.itemCat2List = response;
+        });
+    });
+
+    // 查询第三个下拉列表数据
+    $scope.$watch('entity.goods.category2Id', function (newValue, oldValue) {
+        itemCatService.findByParentId(newValue).success(function (response) {
+            $scope.itemCat3List = response;
+        });
+    });
+
+    //  读取模板ID
+    $scope.$watch('entity.goods.category3Id', function (newValue, oldValue) {
+        itemCatService.findOne(newValue).success(function (response) {
+            $scope.entity.goods.typeTemplateId = response.typeId;
+        });
+    });
+
+    //确定模版ID后，读取品牌列表
+    $scope.$watch('entity.goods.typeTemplateId', function (newValue, oldValue) {
+        typeTemplateService.findOne(newValue).success(function (response) {
+            $scope.typeTemplate = response;
+            $scope.typeTemplate.brandIds = JSON.parse($scope.typeTemplate.brandIds);
+
+            //扩展属性
+            $scope.entity.goodsDesc.customAttributeItems = JSON.parse($scope.typeTemplate.customAttributeItems);
+        });
+
+        //获取规格列表
+        typeTemplateService.selectSpecList(newValue).success(function (response) {
+            $scope.specList = response;
+        })
+    });
+
+    // 选择规格
+    $scope.updateSpecAttribute = function ($event, name, value) {
+        //$scope.entity = {goods: {}, goodsDesc: {itemImages: [], specificationItems: []}};
+        var object = $scope.searchObjectByKey($scope.entity.goodsDesc.specificationItems, "attributeName", name);
+        if (object != null) {
+            if ($event.target.checked) {
+                //选中
+                object.attributeValue.push(value);
+            } else {
+                //取消选中
+                object.attributeValue.splice(object.attributeValue.indexOf(value), 1);
+                // 如果该规格的选项都取消，将此条记录移除
+                if (object.attributeValue.length == 0) {
+                    $scope.entity.goodsDesc.specificationItems.splice(
+                        $scope.entity.goodsDesc.specificationItems.indexOf(object), 1);
+                }
+
+            }
+        } else {
+            $scope.entity.goodsDesc.specificationItems.push({"attributeName": name, "attributeValue": [value]});
+        }
+
+    }
+});
+
+
