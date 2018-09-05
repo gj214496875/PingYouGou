@@ -178,7 +178,28 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
         } else {
             $scope.entity.goodsDesc.specificationItems.push({"attributeName": name, "attributeValue": [value]});
         }
+    };
 
+    $scope.getItemList = function () {
+        //$scope.entity.itemList = [{spec: {'网络'：4G，'内存':16G}, price: 0, num: 9999}];
+        $scope.entity.itemList = [{spec: {}, price: 0, num: 9999}];
+        var specs = $scope.entity.goodsDesc.specificationItems;
+        for (var i = 0; i < specs.length; i++) {
+            $scope.entity.itemList = addColumn($scope.entity.itemList, specs[i].attributeName, specs[i].attributeValue);
+        }
+    };
+
+    var addColumn = function (arry, attributeName, attributeValues) {
+        var newList = [];
+        for (var i = 0; i < arry.length; i++) {
+            var oldRow = arry[i];
+            for (var j = 0; j < attributeValues.length; j++) {
+                var newRow = JSON.parse(JSON.stringify(oldRow));
+                newRow.spec[attributeName] = attributeValues[j];
+                newList.push(newRow);
+            }
+        }
+        return newList;
     }
 });
 
