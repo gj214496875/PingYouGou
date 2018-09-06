@@ -106,7 +106,7 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
     $scope.entity = {goods: {}, goodsDesc: {itemImages: [], specificationItems: []}};
 
     $scope.add_image_entity = function () {
-        $scope.image_entity.goodsDesc.itemImages.push($scope.image_entity);
+        $scope.entity.goodsDesc.itemImages.push($scope.image_entity);
     };
 
     $scope.remove_image_entity = function (index) {
