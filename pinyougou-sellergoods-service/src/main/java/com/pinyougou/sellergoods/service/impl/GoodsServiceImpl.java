@@ -169,7 +169,7 @@ public class GoodsServiceImpl implements GoodsService {
                 criteria.andSellerIdLike("%" + goods.getSellerId() + "%");
             }
             if (goods.getGoodsName() != null && goods.getGoodsName().length() > 0) {
-                criteria.andGoodsNameLike("%" + goods.getGoodsName() + "%");
+                criteria.andGoodsNameEqualTo(goods.getGoodsName());
             }
             if (goods.getAuditStatus() != null && goods.getAuditStatus().length() > 0) {
                 criteria.andAuditStatusLike("%" + goods.getAuditStatus() + "%");

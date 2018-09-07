@@ -81,7 +81,7 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
     };
 
     $scope.searchEntity = {};//定义搜索对象
-
+    $scope.status = ['未审核', '已审核', '审核未通过', '关闭'];//商品状态
     //搜索
     $scope.search = function (page, rows) {
         goodsService.search(page, rows, $scope.searchEntity).success(
@@ -90,6 +90,14 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
                 $scope.paginationConf.totalItems = response.total;//更新总记录数
             }
         );
+    };
+    $scope.itemCats = [];
+    $scope.findItemCat = function () {
+        itemCatService.findAll().success(function (response) {
+            for (var i = 0; i < response.length; i++) {
+                $scope.itemCats[response[i].id] = response[i].name;
+            }
+        })
     };
 
     $scope.uploadFile = function () {
