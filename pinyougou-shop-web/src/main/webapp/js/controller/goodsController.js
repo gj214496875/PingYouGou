@@ -1,5 +1,5 @@
 //控制层
-app.controller('goodsController', function ($scope, $controller, goodsService, uploadService, itemCatService, typeTemplateService) {
+app.controller('goodsController', function ($scope, $controller, $location, goodsService, uploadService, itemCatService, typeTemplateService) {
 
     $controller('baseController', {$scope: $scope});//继承
 
@@ -23,18 +23,50 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
     };
 
     //查询实体
-    $scope.findOne = function (id) {
+    $scope.findOne = function () {
+        var id = $location.search()["id"];
         goodsService.findOne(id).success(
             function (response) {
                 $scope.entity = response;
+                // 设置富文本编辑
+                editor.html($scope.entity.goodsDesc.introduction);
+                // 设置图片显示
+                $scope.entity.goodsDesc.itemImages = JSON.parse($scope.entity.goodsDesc.itemImages);
+                // 设置扩张属性
+                $scope.entity.goodsDesc.customAttributeItems = JSON.parse($scope.entity.goodsDesc.customAttributeItems);
+                // 设置规格
+                $scope.entity.goodsDesc.specificationItems = JSON.parse($scope.entity.goodsDesc.specificationItems);
+                // 设置规格列表
+                var itemList = $scope.entity.itemList;
+                for (var i = 0; i < itemList.length; i++) {
+                    itemList[i].spec = JSON.parse(itemList[i].spec);
+                }
+
             }
         );
     };
 
+    // 复选框状态
+    $scope.checkAttributeValue = function (attributeName, attributeValue) {
+        var arry = $scope.entity.goodsDesc.specificationItems;
+        var object = $scope.searchObjectByKey(arry, 'attributeName', attributeName);
+        if (object == null) {
+            return false;
+        } else {
+            if (object.attributeValue.indexOf(attributeValue) >= 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    };
+
     //保存
     $scope.save = function () {
+        $scope.entity.goodsDesc.introduction = editor.html();
         var serviceObject;//服务层对象
-        if ($scope.entity.id != null) {//如果有ID
+        if ($scope.entity.goods.id != null) {//如果有ID
             serviceObject = goodsService.update($scope.entity); //修改
         } else {
             serviceObject = goodsService.add($scope.entity);//增加
@@ -42,30 +74,14 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
         serviceObject.success(
             function (response) {
                 if (response.success) {
-                    //重新查询
-                    $scope.reloadList();//重新加载
-                } else {
-                    alert(response.message);
-                }
-            }
-        );
-    };
-
-    $scope.add = function () {
-        $scope.entity.goodsDesc.introduction = editor.html();
-        goodsService.add($scope.entity).success(
-            function (response) {
-                if (response.success) {
                     alert('保存成功');
-                    $scope.entity = {};
-                    editor.html('');
+                    location.href = "goods.html";
                 } else {
                     alert(response.message);
                 }
             }
         );
     };
-
 
     //批量删除
     $scope.dele = function () {
@@ -156,7 +172,10 @@ app.controller('goodsController', function ($scope, $controller, goodsService, u
             $scope.typeTemplate.brandIds = JSON.parse($scope.typeTemplate.brandIds);
 
             //扩展属性
-            $scope.entity.goodsDesc.customAttributeItems = JSON.parse($scope.typeTemplate.customAttributeItems);
+            if ($location.search()["id"] == null) {
+                //新增
+                $scope.entity.goodsDesc.customAttributeItems = JSON.parse($scope.typeTemplate.customAttributeItems);
+            }
         });
 
         //获取规格列表

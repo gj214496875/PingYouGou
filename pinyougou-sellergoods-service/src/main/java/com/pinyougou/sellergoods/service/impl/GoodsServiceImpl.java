@@ -68,6 +68,11 @@ public class GoodsServiceImpl implements GoodsService {
         tbGoodsDesc.setGoodsId(tbGoods.getId());
         goodsDescMapper.insert(tbGoodsDesc);
 
+        addItem(goods);
+    }
+
+    private void addItem(Goods goods) {
+
 
         if ("1".equals(goods.getGoods().getIsEnableSpec())) {
             for (TbItem item : goods.getItemList()) {
@@ -131,8 +136,18 @@ public class GoodsServiceImpl implements GoodsService {
      * 修改
      */
     @Override
-    public void update(TbGoods goods) {
-        goodsMapper.updateByPrimaryKey(goods);
+    public void update(Goods goods) {
+
+        goodsMapper.updateByPrimaryKey(goods.getGoods());
+        goodsDescMapper.updateByPrimaryKey(goods.getGoodsDesc());
+
+        // 删除原有的items
+        TbItemExample tbItemExample = new TbItemExample();
+        TbItemExample.Criteria criteria = tbItemExample.createCriteria();
+        criteria.andGoodsIdEqualTo(goods.getGoods().getId());
+        itemMapper.deleteByExample(tbItemExample);
+
+        addItem(goods);
     }
 
     /**
@@ -142,8 +157,18 @@ public class GoodsServiceImpl implements GoodsService {
      * @return
      */
     @Override
-    public TbGoods findOne(Long id) {
-        return goodsMapper.selectByPrimaryKey(id);
+    public Goods findOne(Long id) {
+        Goods goods = new Goods();
+        TbGoods tbGoods = goodsMapper.selectByPrimaryKey(id);
+        TbGoodsDesc tbGoodsDesc = goodsDescMapper.selectByPrimaryKey(tbGoods.getId());
+        TbItemExample tbItemExample = new TbItemExample();
+        TbItemExample.Criteria criteria = tbItemExample.createCriteria();
+        criteria.andGoodsIdEqualTo(tbGoods.getId());
+        List<TbItem> tbItems = itemMapper.selectByExample(tbItemExample);
+        goods.setGoods(tbGoods);
+        goods.setGoodsDesc(tbGoodsDesc);
+        goods.setItemList(tbItems);
+        return goods;
     }
 
     /**
@@ -163,6 +188,7 @@ public class GoodsServiceImpl implements GoodsService {
 
         TbGoodsExample example = new TbGoodsExample();
         Criteria criteria = example.createCriteria();
+        criteria.andIsDeleteIsNull();//非删除状态
 
         if (goods != null) {
             if (goods.getSellerId() != null && goods.getSellerId().length() > 0) {
@@ -194,6 +220,24 @@ public class GoodsServiceImpl implements GoodsService {
 
         Page<TbGoods> page = (Page<TbGoods>) goodsMapper.selectByExample(example);
         return new PageResult(page.getTotal(), page.getResult());
+    }
+
+    @Override
+    public void updateStatus(Long[] ids, String status) {
+        for (Long id : ids) {
+            TbGoods goods = goodsMapper.selectByPrimaryKey(id);
+            goods.setAuditStatus(status);
+            goodsMapper.updateByPrimaryKey(goods);
+        }
+    }
+
+    @Override
+    public void deleteStatus(Long[] ids, String status) {
+        for (Long id : ids) {
+            TbGoods goods = goodsMapper.selectByPrimaryKey(id);
+            goods.setIsDelete(status);
+            goodsMapper.updateByPrimaryKey(goods);
+        }
     }
 
 }

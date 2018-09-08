@@ -28,6 +28,7 @@
             <!--开启框架页面支持-->
             <frame-options policy="SAMEORIGIN"/>
         </headers>
+        <logout logout-url="/logout" logout-success-url="/login.html"/>
     </http>
 
     <!--配置认证器-->
